@@ -11,7 +11,7 @@ import json
 from transformers import BertModel, BertConfig, BertPreTrainedModel
 import torch.nn as nn
 import torch
-from loss import AFLoss
+from loss import FLoss
 from util_sampling import *
 from adversarial import *
 
@@ -47,14 +47,12 @@ def train():
             augment_method=args.aug_type
         )
         all_data = json.load(open(train_aug_path))
+        all_data = np.array(all_data)
     else:
         all_data = np.array(train_data)
     kf = KFold(n_splits=args.k_num, shuffle=True, random_state=42)
     fold = 0
     for train_index, val_index in kf.split(all_data):
-        print(len(all_data))
-        print(train_index)
-        print(val_index)
         fold += 1
         print("="*80)
         print(f"正在训练第 {fold} 折的数据")
@@ -229,9 +227,6 @@ def evaluate(args, tokenizer, id2predicate, id2label, label2id, model, dataloade
                         
             R = set([(tuple(item[0]), item[1], tuple(item[2])) for item in one])
             T = set([(tuple(item[0]), item[1], tuple(item[2])) for item in ex['spos']])
-            if i < 10:
-                print(R)
-                print(T)
             X += len(R & T)
             Y += len(R)
             Z += len(T)
